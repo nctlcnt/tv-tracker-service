@@ -15,7 +15,6 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
     let collection = await db.collection('users')
-    console.log(req.params.id)
     let query = { _id: new ObjectId(req.params.id) }
     let result = await collection.findOne(query)
     // let result = await collection.find({}).toArray()

@@ -5,11 +5,28 @@ const router = express.Router()
 
 /* GET home page. */
 router.get('/', async (req, res, next) => {
-    let collection = await db.collection('shows')
-    let results = await collection.find({}).toArray()
-
-    if (!results) res.send('Not found').status(404)
-    else res.send(results).status(200)
+    try {
+        const results = await db
+            .collection('shows')
+            .aggregate([
+                {
+                    $lookup: {
+                        from: 'progress',
+                        let: { 'show_id': '$showId' },
+                        pipeline: [
+                            { $match: { $expr: { $eq: ['$showId', '$$show_id'] } } },
+                            { $sort: { watchedAt: -1 } },
+                            { $limit: 1 },
+                        ],
+                        as: 'latestProgress',
+                    },
+                },
+            ])
+            .toArray()
+        res.send(results).status(200)
+    } catch (error) {
+        if (!results) res.send('Not found').status(404)
+    }
 })
 router.post('/', async (req, res, next) => {
     try {
